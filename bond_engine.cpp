@@ -13,6 +13,10 @@ class Date
 
     public:
         Date(int year, int month, int day) : year_d(year), month_d(month), day_d(day) {}
+
+        int Year_d() const { return year_d; }
+        int Month_d() const { return month_d; }
+        int Day_d() const { return day_d; }
         
         int daysDiff(const Date& other) const 
         {
@@ -81,9 +85,9 @@ class Bond
             for(int i=1; i <= numyears_d*frequency_d; i++)
             {
                 Date paymentdate(
-                    settledate.year_d + i / frequency_d,
-                    (settledate.month_d + (i % frequency_d) * 12 / frequency_d)%12 + 1,
-                    settledate.day_d
+                    settledate.Year_d() + i / frequency_d,
+                    (settledate.Month_d() + (i % frequency_d) * 12 / frequency_d)%12 + 1,
+                    settledate.Day_d()
                 );
 
                 double time = i*1.0/frequency_d;
@@ -92,9 +96,9 @@ class Bond
 
             //Adding principal repayment cashflow
             Date maturitydate(
-                settledate.year_d + numyears_d,
-                settledate.month_d,
-                settledate.day_d
+                settledate.Year_d() + numyears_d,
+                settledate.Month_d(),
+                settledate.Day_d()
             );
 
             cashflows.push_back({maturitydate, static_cast<double>(numyears_d), facevalue_d+couponamount, "Principal"});
@@ -184,7 +188,22 @@ class Bond
         }
 };
 
-void main()
+int main()
 {
+    Bond bond(100.0, 0.03, 5, 2);
+    Date settledate(2025, 1, 15);
 
+    auto cashflows = bond.generateCashflows(settledate);
+    auto [ytm, accural] = bond.calculateYTM(98.0, cashflows);
+
+    cout<<"YTM: "<<ytm*100<<"%,\nAccural: "<<accural<<"\n\n";
+
+    auto analytics = bond.calculateAnalytics(ytm, cashflows);
+    cout<<"Analytics:\n";
+    cout<<"Macaulay Duration: "<<analytics.macauleydur<<"\n";
+    cout<<"Modified Duration: "<<analytics.modifieddur<<"\n";
+    cout<<"Convexity: "<<analytics.convexity<<"\n";
+    cout<<"DV01: "<<analytics.dv01<<"\n";
+
+    return 0;
 }
