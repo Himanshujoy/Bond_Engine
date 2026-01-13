@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+using namespace std;
+
 
 class Date
 {
@@ -20,3 +22,34 @@ class Date
             );
         }
 };
+
+class IYieldCurve
+{
+    public:
+        virtual double discountfactor(double time) const = 0;
+        virtual double forwardrate(double time1, double time2) const = 0;
+        virtual ~IYieldCurve() = default;
+};
+
+class FlatYieldCurve : public IYieldCurve
+{
+    private:
+        double rate_d;
+    public:
+        explicit FlatYieldCurve(double rate) : rate_d(rate) {}
+        
+        double discountfactor(double time) const override 
+        {
+            return exp(-rate_d * time);
+        }
+        
+        double forwardrate(double time1, double time2) const override 
+        {
+            return rate_d;
+        }
+};
+
+void main()
+{
+
+}
