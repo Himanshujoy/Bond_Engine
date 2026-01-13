@@ -152,6 +152,36 @@ class Bond
 
             return {ytm, accural};
         }
+
+        struct BondAnalytics
+        {
+            double macauleydur, modifieddur, convexity, dv01, price;
+        };
+
+        BondAnalytics calculateAnalytics(double yield, const vector<Cashflow>& cashflows) const
+        {
+            BondAnalytics analytics;
+
+            analytics.price = pricefromyield(yield, cashflows);
+
+            double macaulay_duration = 0.0, convexity = 0.0;
+
+            for(const auto& cf : cashflows)
+            {
+                double time = cf.time;
+                double pv = cf.amount / pow(1 + yield / frequency_d, time * frequency_d);
+
+                macaulay_duration += time * pv;
+                convexity += time * (time + 1.0 / frequency_d) * pv;
+            }
+
+            analytics.macauleydur = macaulay_duration / analytics.price;
+            analytics.modifieddur = analytics.macauleydur / (1 + yield / frequency_d);
+            analytics.convexity = convexity / (analytics.price * pow(1 + yield / frequency_d, 2));
+            analytics.dv01 = analytics.modifieddur * analytics.price * 0.0001;
+
+            return analytics;
+        }
 };
 
 void main()
