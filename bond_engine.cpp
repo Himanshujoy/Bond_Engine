@@ -87,7 +87,7 @@ class Bond
             {
                 Date paymentdate(
                     settledate.Year_d() + i / frequency_d,
-                    (settledate.Month_d() + (i % frequency_d) * 12 / frequency_d)%12 + 1,
+                    (settledate.Month_d() + ((i-1) % frequency_d + 1) * 12 / frequency_d - 1)%12 + 1,
                     settledate.Day_d()
                 );
 
@@ -185,9 +185,9 @@ class Bond
         void displaycashflows(const vector<Cashflow>& cashflows) const
         {
             cout<<"Cashflows:\n";
-            cout<< "----------------------------------------------\n";
+            cout<< "-------------------------------------------------\n";
             cout<<"| Payment Date\t| Time\t| Amount\t| Type\t|\n";
-            cout<< "----------------------------------------------\n";
+            cout<< "-------------------------------------------------\n";
             for(const auto& cf : cashflows)
             {
                 cout<<"| "<<cf.paymentdate.Year_d()<<"-"<<cf.paymentdate.Month_d()<<"-"<<cf.paymentdate.Day_d()
@@ -196,6 +196,7 @@ class Bond
                     <<"\t| "<<cf.type
                     <<"\t|\n";
             }
+            cout<< "-------------------------------------------------\n";
         }
 };
 
