@@ -49,6 +49,14 @@ class FlatYieldCurve : public IYieldCurve
         }
 };
 
+struct Cashflow
+{
+    Date paymentdate;
+    double time;
+    double amount;
+    string type;
+};
+
 void main()
 {
 
