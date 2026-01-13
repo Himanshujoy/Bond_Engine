@@ -77,12 +77,13 @@ class Bond
         {
             vector<Cashflow> cashflows;
             double couponamount = facevalue_d * couponrate_d / frequency_d;
-            
+            int coupon_count = numyears_d * frequency_d;
+
             const int days_in_year = 365;
             const int coupon_interval_days = days_in_year / frequency_d;
-            
+
             //Adding coupon cashflows
-            for(int i=1; i <= numyears_d*frequency_d; i++)
+            for(int i=1; i<=coupon_count; i++)
             {
                 Date paymentdate(
                     settledate.Year_d() + i / frequency_d,
@@ -91,17 +92,11 @@ class Bond
                 );
 
                 double time = i*1.0/frequency_d;
-                cashflows.push_back({paymentdate, time, couponamount, "Coupon"});
+                double amount = (i == coupon_count ) ? (couponamount + facevalue_d) : couponamount;
+                string type = (i == coupon_count ) ? "Maturity" : "Coupon";
+
+                cashflows.push_back({paymentdate, time, amount, type});
             }
-
-            //Adding principal repayment cashflow
-            Date maturitydate(
-                settledate.Year_d() + numyears_d,
-                settledate.Month_d(),
-                settledate.Day_d()
-            );
-
-            cashflows.push_back({maturitydate, static_cast<double>(numyears_d), facevalue_d+couponamount, "Principal"});
 
             return cashflows;
         }
@@ -133,7 +128,7 @@ class Bond
 
             try
             {
-                double ytm_low = 0.0, ytm_high = 0.5;
+                double ytm_low = 0.0, ytm_high = 1.0;
                 while (ytm_high-ytm_low>1e-8)
                 {
                     double ytm_mid = (ytm_low + ytm_high) / 2.0;
@@ -186,6 +181,22 @@ class Bond
 
             return analytics;
         }
+
+        void displaycashflows(const vector<Cashflow>& cashflows) const
+        {
+            cout<<"Cashflows:\n";
+            cout<< "----------------------------------------------\n";
+            cout<<"| Payment Date\t| Time\t| Amount\t| Type\t|\n";
+            cout<< "----------------------------------------------\n";
+            for(const auto& cf : cashflows)
+            {
+                cout<<"| "<<cf.paymentdate.Year_d()<<"-"<<cf.paymentdate.Month_d()<<"-"<<cf.paymentdate.Day_d()
+                    <<"\t| "<<cf.time
+                    <<"\t| "<<cf.amount
+                    <<"\t| "<<cf.type
+                    <<"\t|\n";
+            }
+        }
 };
 
 int main()
@@ -194,9 +205,11 @@ int main()
     Date settledate(2025, 1, 15);
 
     auto cashflows = bond.generateCashflows(settledate);
-    auto [ytm, accural] = bond.calculateYTM(98.0, cashflows);
+    auto [ytm, accural] = bond.calculateYTM(97.5, cashflows);
 
-    cout<<"YTM: "<<ytm*100<<"%,\nAccural: "<<accural<<"\n\n";
+    bond.displaycashflows(cashflows);
+
+    cout<<"\nYTM: "<<ytm*100<<"%,\nAccural: "<<accural<<"\n\n";
 
     auto analytics = bond.calculateAnalytics(ytm, cashflows);
     cout<<"Analytics:\n";
