@@ -101,6 +101,57 @@ class Bond
 
             return cashflows;
         }
+
+        double pricefromyield(double yield, const vector<Cashflow>& cashflows) const
+        {
+            double discountedprice = 0.0;
+            double discountfactor = yield / frequency_d;
+
+            for(const auto& cf : cashflows)
+            {
+                discountedprice += cf.amount/pow(1+discountfactor, cf.time*frequency_d);
+            }
+
+            return discountedprice;
+        }
+
+        pair<double, double> calculateYTM(double marketprice, const vector<Cashflow>& cashflows) const
+        {
+            double accural = facevalue_d * couponrate_d * 0.5 * (30.0/360.0);
+            double dirtyprice = marketprice + accural;
+
+            auto pricediff = [&](double ytm)
+            {
+                return pricefromyield(ytm, cashflows) - dirtyprice;
+            };
+
+            double ytm=0.0;
+
+            try
+            {
+                double ytm_low = 0.0, ytm_high = 0.5;
+                while (ytm_high-ytm_low>1e-8)
+                {
+                    double ytm_mid = (ytm_low + ytm_high) / 2.0;
+                    if(pricediff(ytm_low)*pricediff(ytm_mid)<=0)
+                    {
+                        ytm_high = ytm_mid;
+                    }
+                    else
+                    {
+                        ytm_low = ytm_mid;
+                    }
+                }
+
+                ytm = (ytm_low + ytm_high) / 2.0;
+            }
+            catch(...)
+            {
+                ytm = numeric_limits<double>::quiet_NaN();
+            }
+
+            return {ytm, accural};
+        }
 };
 
 void main()
